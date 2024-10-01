@@ -1,0 +1,47 @@
+services:
+  openhab:
+    image: openhab/openhab:latest
+    container_name: Openhab
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - $PWD/openhab/conf:/openhab/conf
+      - $PWD/openhab/userdata:/openhab/userdata
+      - $PWD/openhab/addons:/openhab/addons
+    environment:
+      USER_ID: ${USER_ID:-999}
+      GROUP_ID: ${USER_ID:-991}
+      OPENHAB_HTTP_PORT: ${OPENHAB_HTTP_PORT:-8080}
+      OPENHAB_HTTPS_PORT: ${OPENHAB_HTTPS_PORT:-8443}
+      EXTRA_JAVA_OPTS: "-Duser.timezone=America/Kentucky/Louisville"
+    restart: unless-stopped
+    network_mode: host
+
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: MQTT
+    volumes:
+      - $PWD/mqtt/config:/mosquitto/config:rw
+      - $PWD/mqtt/data:/mosquitto/data:rw
+      - $PWD/mqtt/log:/mosquitto/log:rw
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    network_mode: host
+    restart: unless-stopped
+
+  boiler:
+    build: ./boiler
+    image: boiler_publisher
+    container_name: BoilerPublisher
+    restart: unless-stopped
+    init: true
+    network_mode: host
+    volumes:
+      - $PWD/Store:/app/Store
+    environment:
+      LOGLEVEL: ${LOGLEVEL:-ERROR}
+      HM_URL: ${HM_URL:-NONE}
+      MQTT_BROKER: ${MQTT_BROKER:-localhost}
+      MQTT_USER: ${MQTT_USER:-boiler}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-boiler}

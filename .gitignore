@@ -1,0 +1,9 @@
+.env
+
+openhab/
+
+mqtt/*
+!mqtt/config
+mqtt/config/*
+!mqtt/config/mosquitto.conf
+!mqtt/config/pwfile
